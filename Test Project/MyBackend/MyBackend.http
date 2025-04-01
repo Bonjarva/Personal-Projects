@@ -1,6 +1,17 @@
 @MyBackend_HostAddress = http://localhost:5294
 
 
+
+### login POST request
+POST {{MyBackend_HostAddress}}/login
+Content-Type: application/json
+
+{
+  "Username": "user",
+  "Password": "password"
+}
+
+
 ### initial landing root page
 GET {{MyBackend_HostAddress}}/
 Accept: text/plain
@@ -13,16 +24,19 @@ Accept: application/json
 ### Add a new task
 POST {{MyBackend_HostAddress}}/tasks
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1bmlxdWVfbmFtZSI6InVzZXIiLCJuYmYiOjE3NDM1MjYxODQsImV4cCI6MTc0MzUyOTc4NCwiaWF0IjoxNzQzNTI2MTg0fQ.LuHlaKtLVVjdtdF28m8jVgc0kkGAdFp0hl-IfbJ7KPU
 
 {
   "title": "Sample Task",
   "isCompleted": false
+
 }
 
 ### Update a task
 # Replace {id} with the actual task id you want to update, for example: 1
-PUT {{MyBackend_HostAddress}}/tasks/1
+PUT {{MyBackend_HostAddress}}/tasks/13
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1bmlxdWVfbmFtZSI6InVzZXIiLCJuYmYiOjE3NDM1MjYxODQsImV4cCI6MTc0MzUyOTc4NCwiaWF0IjoxNzQzNTI2MTg0fQ.LuHlaKtLVVjdtdF28m8jVgc0kkGAdFp0hl-IfbJ7KPU
 
 {
   "title": "Updated Task Title",
@@ -31,6 +45,7 @@ Content-Type: application/json
 
 ### Delete a task
 # Replace {id} with the actual task id you want to delete, for example: 1
-DELETE {{MyBackend_HostAddress}}/tasks/1
+DELETE {{MyBackend_HostAddress}}/tasks/13
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1bmlxdWVfbmFtZSI6InVzZXIiLCJuYmYiOjE3NDM1MjYxODQsImV4cCI6MTc0MzUyOTc4NCwiaWF0IjoxNzQzNTI2MTg0fQ.LuHlaKtLVVjdtdF28m8jVgc0kkGAdFp0hl-IfbJ7KPU
 
 ###
