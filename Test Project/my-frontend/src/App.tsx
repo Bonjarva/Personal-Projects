@@ -1,5 +1,6 @@
 import "./App.css";
 import { useState, useEffect } from "react";
+import LoginForm from "./LoginForm"; // Import the renamed login component
 
 interface TaskItem {
   id: number;
@@ -7,73 +8,8 @@ interface TaskItem {
   isCompleted: boolean;
 }
 
-// A simple login form component
-function LoginForm({ onLogin }: { onLogin: (token: string) => void }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch("http://localhost:5294/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Username: username, Password: password }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        onLogin(data.token);
-        localStorage.setItem("authToken", data.token);
-      } else {
-        setError("Login failed. Please check your credentials.");
-      }
-    } catch (err) {
-      console.error("Error during login:", err);
-      setError("An error occurred. Please try again.");
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      <form
-        onSubmit={handleLogin}
-        className="p-4 max-w-md mx-auto border rounded shadow"
-      >
-        <h2 className="text-2xl font-bold mb-4">Login</h2>
-        {error && <p className="text-red-500 mb-2">{error}</p>}
-        <label className="block mb-2">
-          Username:
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="border p-1 w-full mt-1"
-            placeholder="Enter your username"
-          />
-        </label>
-        <label className="block mb-4">
-          Password:
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border p-1 w-full mt-1"
-            placeholder="Enter your password"
-          />
-        </label>
-        <button
-          type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Login
-        </button>
-      </form>
-    </div>
-  );
-}
-
 function App() {
+  // Retrieve token from localStorage if available
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("authToken")
   );
@@ -95,6 +31,13 @@ function App() {
         .catch((err) => console.error("Error fetching tasks:", err));
     }
   }, [token]);
+
+  // NEW: Logout functionality
+  // This function clears the auth token and resets the token state.
+  const handleLogout = () => {
+    localStorage.removeItem("authToken"); // Remove token from localStorage
+    setToken(null); // Reset token state to null, which will trigger the login form to be shown
+  };
 
   const addTask = async () => {
     if (!newTaskTitle.trim() || !token) return;
@@ -149,7 +92,7 @@ function App() {
       body: JSON.stringify(updatedTask),
     });
     if (response.ok) {
-      // If the response status is 204 No Content, update locally:
+      // Check if response has no content (204) or has updated task data
       if (response.status === 204) {
         setTasks(
           tasks.map((task) =>
@@ -177,6 +120,15 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+      {/* NEW: Logout Button */}
+      <div className="w-full flex justify-end mb-4">
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-3 py-1 rounded"
+        >
+          Logout
+        </button>
+      </div>
       <h1 className="text-4xl font-bold text-blue-600 mb-4">Tasks</h1>
       <ul>
         {tasks.map((task) => (
