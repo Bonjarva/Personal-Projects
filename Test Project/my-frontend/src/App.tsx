@@ -119,6 +119,32 @@ function App() {
     }
   };
 
+  const toggleCompletion = async (task: TaskItem) => {
+    if (!token) return;
+    // Create a new task object with the toggled isCompleted value
+    const updatedTask = { title: task.title, isCompleted: !task.isCompleted };
+
+    const response = await fetch(`http://localhost:5294/tasks/${task.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(updatedTask),
+    });
+
+    if (response.ok) {
+      // Update the task list locally
+      setTasks(
+        tasks.map((t) =>
+          t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t
+        )
+      );
+    } else {
+      console.error("Failed to toggle task completion", response.status);
+    }
+  };
+
   // If no token, show the login form
   // If no token, conditionally render login or registration form
   if (!token) {
@@ -202,6 +228,13 @@ function App() {
                   className="bg-yellow-500 text-white px-2 py-1 mr-2 rounded"
                 >
                   Edit
+                </button>
+                {/* New: Toggle Completion Button */}
+                <button
+                  onClick={() => toggleCompletion(task)}
+                  className="bg-blue-500 text-white px-2 py-1 mr-2 rounded"
+                >
+                  {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
                 </button>
                 <button
                   onClick={() => deleteTask(task.id)}
