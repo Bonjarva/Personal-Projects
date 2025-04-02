@@ -4,19 +4,35 @@ using System.Text;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
-using MyBackend.Models;
+using MyBackend.Models;  // This namespace should contain ApplicationDbContext
+using Microsoft.AspNetCore.Identity;
 
+// ===================================================
+// Build the WebApplication Builder
+// ===================================================
 var builder = WebApplication.CreateBuilder(args);
 
-// Define a secret key for JWT signing (in production, store this securely)
-var jwtKey = "MySuperSecretKeyThatIsAtLeast16CharsLong";
+// ===================================================
+// 1. Configure Services
+// ===================================================
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// 1.1. Configure the Connection String and DbContext
+// Use the connection string from configuration or default to a local SQLite file.
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=app.db";
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(connectionString));
 
-// Configure JWT authentication
+
+// 1.2. Add Identity Services
+// This registers ASP.NET Core Identity and configures EF Core stores.
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+// 1.3. Configure JWT Authentication
+// Retrieve the JWT key from configuration or use a fallback value (for demo purposes only).
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "MySuperSecretKeyThatIsAtLeast16CharsLong";
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -26,8 +42,8 @@ builder.Services.AddAuthentication(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false, // set to true in production
-        ValidateAudience = false, // set to true in production
+        ValidateIssuer = false, // In production, set to true and provide valid values.
+        ValidateAudience = false, // In production, set to true and provide valid values.
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
@@ -35,8 +51,8 @@ builder.Services.AddAuthentication(options =>
 });
 builder.Services.AddAuthorization();
 
-
-// Configure CORS to allow any origin (for development)
+// 1.4. Configure CORS (for development purposes)
+// Allow any origin; in production, restrict this as necessary.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -47,13 +63,22 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Register the DbContext with SQLite
-builder.Services.AddDbContext<TaskContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=tasks.db"));
+// 1.5. Add Swagger for API documentation (optional, for development)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
+// ===================================================
+// Build the Application
+// ===================================================
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
+
+
+// ===================================================
+// 2. Configure Middleware
+// ===================================================
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -61,25 +86,45 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
-// Enable authentication and authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Public endpoint: Login
-app.MapPost("/login", (UserLogin login) =>
+
+// ===================================================
+// 3. Define Endpoints
+// ===================================================
+
+
+// 3.1. Registration Endpoint (Public)
+// Allows new users to register with a username, email, and password.
+app.MapPost("/register", async (UserRegister model, UserManager<IdentityUser> userManager) =>
 {
-    // For demo purposes, we use a hardcoded username and password.
-    // In a real app, validate against a database.
-    if (login.Username == "user" && login.Password == "password")
+    var user = new IdentityUser { UserName = model.Username, Email = model.Email };
+    var result = await userManager.CreateAsync(user, model.Password);
+    if (result.Succeeded)
+    {
+        return Results.Ok("User registered successfully.");
+    }
+    return Results.BadRequest(result.Errors);
+});
+
+
+// 3.2. Login Endpoint (Public)
+// Validates user credentials and issues a JWT token on success.
+app.MapPost("/login", async (UserLogin login, UserManager<IdentityUser> userManager) =>
+{
+    var user = await userManager.FindByNameAsync(login.Username);
+    if (user != null && await userManager.CheckPasswordAsync(user, login.Password))
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[]
             {
-                new Claim("id", "1"),
-                new Claim(ClaimTypes.Name, login.Username)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName)
             }),
             Expires = DateTime.UtcNow.AddHours(1),
             SigningCredentials = new SigningCredentials(
@@ -93,20 +138,30 @@ app.MapPost("/login", (UserLogin login) =>
     return Results.Unauthorized();
 });
 
-// Enable CORS using the defined policy
-app.UseCors("AllowAll");
 
-// Add the root endpoint that returns a simple message.
-app.MapGet("/", () => "Hello from .NET API!");
+// 3.3. Protected Root Endpoint
+// This endpoint requires a valid JWT token.
+app.MapGet("/", () => "Hello from .NET API!")
+   .RequireAuthorization();
 
 
-app.MapGet("/tasks", async (TaskContext db) =>
+// 3.4. Protected Tasks Endpoints
+
+
+
+// GET /tasks - Retrieve all tasks
+app.MapGet("/tasks", async (ApplicationDbContext db) =>
 {
     var tasks = await db.Tasks.ToListAsync();
     return Results.Ok(tasks);
-});
+})
+.RequireAuthorization();
 
-app.MapPost("/tasks", async (TaskItem task, TaskContext db) =>
+
+
+
+// POST /tasks - Create a new task
+app.MapPost("/tasks", async (TaskItem task, ApplicationDbContext db) =>
 {
     db.Tasks.Add(task);
     await db.SaveChangesAsync();
@@ -114,12 +169,15 @@ app.MapPost("/tasks", async (TaskItem task, TaskContext db) =>
 })
 .RequireAuthorization();
 
-// (Optional) Add a PUT endpoint to update a task:
-app.MapPut("/tasks/{id}", async (int id, TaskItem updatedTask, TaskContext db) =>
+
+
+
+// PUT /tasks/{id} - Update an existing task
+app.MapPut("/tasks/{id}", async (int id, TaskItem updatedTask, ApplicationDbContext db) =>
 {
     var task = await db.Tasks.FindAsync(id);
-    if (task is null) return Results.NotFound();
-
+    if (task is null)
+        return Results.NotFound();
     task.Title = updatedTask.Title;
     task.IsCompleted = updatedTask.IsCompleted;
     await db.SaveChangesAsync();
@@ -127,18 +185,31 @@ app.MapPut("/tasks/{id}", async (int id, TaskItem updatedTask, TaskContext db) =
 })
 .RequireAuthorization();
 
-// (Optional) Add a DELETE endpoint to remove a task:
-app.MapDelete("/tasks/{id}", async (int id, TaskContext db) =>
+
+
+
+
+// DELETE /tasks/{id} - Delete a task
+app.MapDelete("/tasks/{id}", async (int id, ApplicationDbContext db) =>
 {
     var task = await db.Tasks.FindAsync(id);
-    if (task is null) return Results.NotFound();
-
+    if (task is null)
+        return Results.NotFound();
     db.Tasks.Remove(task);
     await db.SaveChangesAsync();
     return Results.NoContent();
 })
 .RequireAuthorization();
 
+
+
+// ===================================================
+// 4. Run the Application
+// ===================================================
 app.Run();
 
+// ===================================================
+// Data Transfer Objects (DTOs)
+// ===================================================
+record UserRegister(string Username, string Email, string Password);
 record UserLogin(string Username, string Password);

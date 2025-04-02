@@ -1,33 +1,48 @@
 @MyBackend_HostAddress = http://localhost:5294
 
 
+### Register POST request
+
+POST {{MyBackend_HostAddress}}/register
+Content-Type: application/json
+
+{
+  "Username": "testuser",
+  "Email": "testuser@example.com",
+  "Password": "YourStrongPassword123!"
+}
+
 
 ### login POST request
 POST {{MyBackend_HostAddress}}/login
 Content-Type: application/json
 
 {
-  "Username": "user",
-  "Password": "password"
+  "Username": "testuser",
+  "Password": "YourStrongPassword123!"
 }
 
 
 ### initial landing root page
 GET {{MyBackend_HostAddress}}/
 Accept: text/plain
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIwMzU4MjY2My0xMzI3LTQwYTMtOWEyMS0zZjkwY2QwMDU4ZTQiLCJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyIiwibmJmIjoxNzQzNTc3MjQwLCJleHAiOjE3NDM1ODA4NDAsImlhdCI6MTc0MzU3NzI0MH0.O1TQ9vVO7YvtOvleEWFl4c3UeL2b2kcYW74-IewJ0EE
+
 
 
 ### Get all tasks
 GET {{MyBackend_HostAddress}}/tasks
 Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIwMzU4MjY2My0xMzI3LTQwYTMtOWEyMS0zZjkwY2QwMDU4ZTQiLCJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyIiwibmJmIjoxNzQzNTc3MjQwLCJleHAiOjE3NDM1ODA4NDAsImlhdCI6MTc0MzU3NzI0MH0.O1TQ9vVO7YvtOvleEWFl4c3UeL2b2kcYW74-IewJ0EE
+
 
 ### Add a new task
 POST {{MyBackend_HostAddress}}/tasks
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjEiLCJ1bmlxdWVfbmFtZSI6InVzZXIiLCJuYmYiOjE3NDM1MjYxODQsImV4cCI6MTc0MzUyOTc4NCwiaWF0IjoxNzQzNTI2MTg0fQ.LuHlaKtLVVjdtdF28m8jVgc0kkGAdFp0hl-IfbJ7KPU
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiIwMzU4MjY2My0xMzI3LTQwYTMtOWEyMS0zZjkwY2QwMDU4ZTQiLCJ1bmlxdWVfbmFtZSI6InRlc3R1c2VyIiwibmJmIjoxNzQzNTc3MjQwLCJleHAiOjE3NDM1ODA4NDAsImlhdCI6MTc0MzU3NzI0MH0.O1TQ9vVO7YvtOvleEWFl4c3UeL2b2kcYW74-IewJ0EE
 
 {
-  "title": "Sample Task",
+  "title": "Sample Task with register",
   "isCompleted": false
 
 }
