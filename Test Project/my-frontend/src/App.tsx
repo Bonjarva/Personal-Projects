@@ -1,6 +1,7 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import LoginForm from "./LoginForm"; // Import the renamed login component
+import LoginForm from "./LoginForm"; // Import the loginForm component
+import RegisterForm from "./RegisterForm"; // Import the RegistrationForm component
 
 interface TaskItem {
   id: number;
@@ -13,11 +14,16 @@ function App() {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("authToken")
   );
+
+  // Toggle for showing registration vs login form
+  const [showRegister, setShowRegister] = useState(false);
+
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingTaskTitle, setEditingTaskTitle] = useState("");
 
+  // Fetch tasks when token is available
   useEffect(() => {
     if (token) {
       fetch("http://localhost:5294/tasks", {
@@ -114,13 +120,45 @@ function App() {
   };
 
   // If no token, show the login form
+  // If no token, conditionally render login or registration form
   if (!token) {
-    return <LoginForm onLogin={setToken} />;
+    return showRegister ? (
+      <>
+        <RegisterForm
+          onRegister={(msg) => {
+            // Optionally, display the message or automatically switch to login
+            alert(msg);
+            setShowRegister(false);
+          }}
+        />
+        <div className="text-center mt-4">
+          <button
+            onClick={() => setShowRegister(false)}
+            className="text-blue-500 underline"
+          >
+            Already have an account? Login here.
+          </button>
+        </div>
+      </>
+    ) : (
+      <>
+        <LoginForm onLogin={setToken} />
+        <div className="text-center mt-4">
+          <button
+            onClick={() => setShowRegister(true)}
+            className="text-blue-500 underline"
+          >
+            Don't have an account? Register here.
+          </button>
+        </div>
+      </>
+    );
   }
 
+  // If authenticated, show the main task interface
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      {/* NEW: Logout Button */}
+      {/* Logout button */}
       <div className="w-full flex justify-end mb-4">
         <button
           onClick={handleLogout}

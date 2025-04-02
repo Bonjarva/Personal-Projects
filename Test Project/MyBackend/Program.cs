@@ -115,6 +115,12 @@ app.MapPost("/register", async (UserRegister model, UserManager<IdentityUser> us
 // Validates user credentials and issues a JWT token on success.
 app.MapPost("/login", async (UserLogin login, UserManager<IdentityUser> userManager) =>
 {
+    // Validate that Username and Password are provided
+    if (string.IsNullOrWhiteSpace(login.Username) || string.IsNullOrWhiteSpace(login.Password))
+    {
+        return Results.BadRequest("Username and password must be provided.");
+    }
+
     var user = await userManager.FindByNameAsync(login.Username);
     if (user != null && await userManager.CheckPasswordAsync(user, login.Password))
     {
@@ -123,8 +129,10 @@ app.MapPost("/login", async (UserLogin login, UserManager<IdentityUser> userMana
         {
             Subject = new ClaimsIdentity(new[]
             {
+
+                
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.Name, user.UserName!)
             }),
             Expires = DateTime.UtcNow.AddHours(1),
             SigningCredentials = new SigningCredentials(
