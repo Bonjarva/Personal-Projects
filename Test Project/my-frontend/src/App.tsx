@@ -15,6 +15,8 @@ function App() {
     localStorage.getItem("authToken")
   );
 
+  const API = import.meta.env.VITE_API_URL;
+
   // Toggle for showing registration vs login form
   const [showRegister, setShowRegister] = useState(false);
 
@@ -26,7 +28,7 @@ function App() {
   // Fetch tasks when token is available
   useEffect(() => {
     if (token) {
-      fetch("http://localhost:5294/tasks", {
+      fetch(`${API}/tasks`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -36,7 +38,7 @@ function App() {
         .then((data) => setTasks(data))
         .catch((err) => console.error("Error fetching tasks:", err));
     }
-  }, [token]);
+  }, [token, API]);
 
   // NEW: Logout functionality
   // This function clears the auth token and resets the token state.
@@ -49,7 +51,7 @@ function App() {
     if (!newTaskTitle.trim() || !token) return;
     const task = { title: newTaskTitle, isCompleted: false };
 
-    const response = await fetch("http://localhost:5294/tasks", {
+    const response = await fetch(`${API}/tasks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +69,7 @@ function App() {
 
   const deleteTask = async (id: number) => {
     if (!token) return;
-    const response = await fetch(`http://localhost:5294/tasks/${id}`, {
+    const response = await fetch(`${API}/tasks/${id}`, {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -89,7 +91,7 @@ function App() {
   const updateTask = async (id: number) => {
     if (!token) return;
     const updatedTask = { title: editingTaskTitle, isCompleted: false };
-    const response = await fetch(`http://localhost:5294/tasks/${id}`, {
+    const response = await fetch(`${API}/tasks/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -124,7 +126,7 @@ function App() {
     // Create a new task object with the toggled isCompleted value
     const updatedTask = { title: task.title, isCompleted: !task.isCompleted };
 
-    const response = await fetch(`http://localhost:5294/tasks/${task.id}`, {
+    const response = await fetch(`${API}/tasks/${task.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

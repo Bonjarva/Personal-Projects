@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Vite mode env files (these can be committed if they contain non‑secret, project‑wide defaults)
+.env.development
+.env.production
+
+# Local overrides (optional, if you still create them)
+.env.local
