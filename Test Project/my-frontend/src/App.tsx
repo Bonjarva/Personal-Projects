@@ -150,119 +150,142 @@ function App() {
   // If no token, show the login form
   // If no token, conditionally render login or registration form
   if (!token) {
-    return showRegister ? (
-      <>
-        <RegisterForm
-          onRegister={(msg) => {
-            // Optionally, display the message or automatically switch to login
-            alert(msg);
-            setShowRegister(false);
-          }}
-        />
-        <div className="text-center mt-4">
-          <button
-            onClick={() => setShowRegister(false)}
-            className="text-blue-500 underline"
-          >
-            Already have an account? Login here.
-          </button>
-        </div>
-      </>
-    ) : (
-      <>
-        <LoginForm onLogin={setToken} />
-        <div className="text-center mt-4">
-          <button
-            onClick={() => setShowRegister(true)}
-            className="text-blue-500 underline"
-          >
-            Don't have an account? Register here.
-          </button>
-        </div>
-      </>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        {showRegister ? (
+          <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg">
+            <RegisterForm
+              onRegister={(msg) => {
+                // Optionally, display the message or automatically switch to login
+                alert(msg);
+                setShowRegister(false);
+              }}
+            />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowRegister(false)}
+                className="text-blue-500 underline"
+              >
+                Already have an account? Login here.
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg">
+            <LoginForm onLogin={setToken} />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowRegister(true)}
+                className="text-blue-500 underline"
+              >
+                Don't have an account? Register here.
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 
   // If authenticated, show the main task interface
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      {/* Logout button */}
-      <div className="w-full flex justify-end mb-4">
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded"
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      {/* Card wrapper */}
+      <div className="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold text-blue-600">Tasks</h1>
+
+          {/* Logout button */}
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md transition duration-200"
+          >
+            Logout
+          </button>
+        </div>
+
+        {/* Task list */}
+        <ul className="space-y-4">
+          {tasks.map((task) => (
+            <li
+              key={task.id}
+              className="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md"
+            >
+              {/* Task buttons */}
+              {editingTaskId === task.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editingTaskTitle}
+                    onChange={(e) => setEditingTaskTitle(e.target.value)}
+                    className="border p-1 mr-2"
+                  />
+                  <button
+                    onClick={() => updateTask(task.id)}
+                    className="bg-green-500 text-white px-2 py-1 mr-2 rounded"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={cancelEditing}
+                    className="bg-gray-500 text-white px-2 py-1 rounded"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="mr-4">
+                    {task.title} {task.isCompleted ? "(Completed)" : ""}
+                  </span>
+                  <button
+                    onClick={() => startEditing(task)}
+                    className="bg-yellow-500 text-white px-2 py-1 mr-2 rounded"
+                  >
+                    Edit
+                  </button>
+                  {/* New: Toggle Completion Button */}
+                  <button
+                    onClick={() => toggleCompletion(task)}
+                    className="bg-blue-500 text-white px-2 py-1 mr-2 rounded"
+                  >
+                    {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
+                  </button>
+                  <button
+                    onClick={() => deleteTask(task.id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {/* New task form */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            addTask();
+          }}
+          className="mt-6 flex space-x-2"
         >
-          Logout
-        </button>
-      </div>
-      <h1 className="text-4xl font-bold text-blue-600 mb-4">Tasks</h1>
-      <ul>
-        {tasks.map((task) => (
-          <li key={task.id} className="mb-2 flex items-center">
-            {editingTaskId === task.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingTaskTitle}
-                  onChange={(e) => setEditingTaskTitle(e.target.value)}
-                  className="border p-1 mr-2"
-                />
-                <button
-                  onClick={() => updateTask(task.id)}
-                  className="bg-green-500 text-white px-2 py-1 mr-2 rounded"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={cancelEditing}
-                  className="bg-gray-500 text-white px-2 py-1 rounded"
-                >
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="mr-4">
-                  {task.title} {task.isCompleted ? "(Completed)" : ""}
-                </span>
-                <button
-                  onClick={() => startEditing(task)}
-                  className="bg-yellow-500 text-white px-2 py-1 mr-2 rounded"
-                >
-                  Edit
-                </button>
-                {/* New: Toggle Completion Button */}
-                <button
-                  onClick={() => toggleCompletion(task)}
-                  className="bg-blue-500 text-white px-2 py-1 mr-2 rounded"
-                >
-                  {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
-                </button>
-                <button
-                  onClick={() => deleteTask(task.id)}
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                >
-                  Delete
-                </button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-      <div className="mt-4">
-        <input
-          type="text"
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-          placeholder="New Task"
-          className="border p-2 mr-2"
-        />
-        <button
-          onClick={addTask}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Add Task
-        </button>
+          <input
+            type="text"
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            placeholder="New Task"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition duration-200"
+          >
+            Add Task
+          </button>
+        </form>
       </div>
     </div>
   );
