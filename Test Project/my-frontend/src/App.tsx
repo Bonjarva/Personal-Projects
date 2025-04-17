@@ -18,9 +18,6 @@ function App() {
 
   const API = import.meta.env.VITE_API_URL;
 
-  // Toggle for showing registration vs login form
-  const [showRegister, setShowRegister] = useState(false);
-
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
