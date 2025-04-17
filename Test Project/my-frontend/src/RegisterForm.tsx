@@ -4,6 +4,8 @@ interface RegisterFormProps {
   onRegister: (message: string) => void;
 }
 
+const API = import.meta.env.VITE_API_URL;
+
 function RegisterForm({ onRegister }: RegisterFormProps) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -13,7 +15,7 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch("http://localhost:5294/register", {
+      const response = await fetch(`${API}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
