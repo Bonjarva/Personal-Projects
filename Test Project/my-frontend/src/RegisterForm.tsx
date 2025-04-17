@@ -1,4 +1,6 @@
+import React from "react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 interface RegisterFormProps {
   onRegister: (message: string) => void;
@@ -84,6 +86,12 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
         >
           Register
         </button>
+        {/* Link to navigate to Register page */}
+        <p className="text-center mt-4">
+          <Link to="/login" className="text-blue-500 underline">
+            Already have an account? Login here.
+          </Link>
+        </p>
       </form>
     </div>
   );

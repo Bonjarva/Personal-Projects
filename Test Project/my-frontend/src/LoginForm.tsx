@@ -1,4 +1,6 @@
+import React from "react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 interface LoginFormProps {
   onLogin: (token: string) => void;
@@ -67,6 +69,12 @@ function LoginForm({ onLogin }: LoginFormProps) {
         >
           Login
         </button>
+        {/* Link to navigate to Register page */}
+        <p className="text-center mt-4">
+          <Link to="/register" className="text-blue-500 underline">
+            Don't have an account? Register here.
+          </Link>
+        </p>
       </form>
     </div>
   );
