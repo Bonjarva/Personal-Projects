@@ -1,86 +1,94 @@
-import "./App.css";
-import { useState, useEffect, JSX } from "react";
-import LoginForm from "./LoginForm"; // Import the loginForm component
-import RegisterForm from "./RegisterForm"; // Import the RegistrationForm component
-import TasksPage from "./TasksPage";
+// ─────────────────────────────────────────────────────────────────────────────
+// External dependencies
+// ─────────────────────────────────────────────────────────────────────────────
+import { ReactNode, useCallback, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
-function App() {
-  // Retrieve token from localStorage if available
+// ─────────────────────────────────────────────────────────────────────────────
+// Styles
+// ─────────────────────────────────────────────────────────────────────────────
+import "./App.css";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Components / Pages
+// ─────────────────────────────────────────────────────────────────────────────
+import LoginForm from "./LoginForm";
+import RegisterForm from "./RegisterForm";
+import TasksPage from "./TasksPage";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Constants & Config
+// ─────────────────────────────────────────────────────────────────────────────
+// Centralize your API URL in one constant, makes it easier to manage
+const API_URL = import.meta.env.VITE_API_URL ?? "";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// App Component
+// ─────────────────────────────────────────────────────────────────────────────
+const App: React.FC = () => {
+  // ───────────────────────────────────────────────────────────────────────────
+  // State: Authentication
+  // ───────────────────────────────────────────────────────────────────────────
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("authToken")
   );
 
-  const API = import.meta.env.VITE_API_URL;
+  // ───────────────────────────────────────────────────────────────────────────
+  // Handlers: Authentication Events
+  // ───────────────────────────────────────────────────────────────────────────
+  const handleLogin = useCallback((newToken: string) => {
+    setToken(newToken);
+    localStorage.setItem("authToken", newToken);
+  }, []);
 
-  // Fetch tasks when token is available
-  useEffect(() => {
-    if (token) {
-      fetch(`${API}/tasks`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .catch((err) => console.error("Error fetching tasks:", err));
-    }
-  }, [token, API]);
+  const handleLogout = useCallback(() => {
+    setToken(null);
+    localStorage.removeItem("authToken");
+  }, []);
 
-  const RequireAuth = ({ children }: { children: JSX.Element }) =>
-    token ? children : <Navigate to="/login" replace />;
+  const handleRegister = useCallback((message: string) => {
+    alert(message);
+  }, []);
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Guard: Protect routes that require authentication
+  // ───────────────────────────────────────────────────────────────────────────
+  const RequireAuth = ({ children }: { children: ReactNode }) =>
+    token ? <>{children}</> : <Navigate to="/login" replace />;
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Routes Definition
+  // ───────────────────────────────────────────────────────────────────────────
   return (
     <Routes>
-      {/* Public Pages */}
-      <Route
-        path="/login"
-        element={
-          <LoginForm
-            onLogin={(t) => {
-              setToken(t);
-              localStorage.setItem("authToken", t);
-            }}
-          />
-        }
-      />
+      {/* Public routes */}
+      <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
       <Route
         path="/register"
-        element={
-          <RegisterForm
-            onRegister={(msg) => {
-              alert(msg);
-              // optionally navigate to /login after registration
-            }}
-          />
-        }
+        element={<RegisterForm onRegister={handleRegister} />}
       />
 
-      {/* Protected tasks page */}
-
+      {/* Protected route: tasks */}
       <Route
         path="/tasks"
         element={
           <RequireAuth>
             <TasksPage
               token={token!}
-              apiUrl={import.meta.env.VITE_API_URL}
-              onLogout={() => {
-                localStorage.removeItem("authToken");
-                setToken(null);
-              }}
+              apiUrl={API_URL}
+              onLogout={handleLogout}
             />
           </RequireAuth>
         }
       />
 
-      {/* Fallback: redirect to /tasks if logged in, otherwise to /login */}
+      {/* Fallback: send to tasks if logged in, otherwise login */}
       <Route
         path="*"
         element={<Navigate to={token ? "/tasks" : "/login"} replace />}
       />
     </Routes>
   );
-}
+};
 
 export default App;
