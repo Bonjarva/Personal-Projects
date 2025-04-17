@@ -6,6 +6,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
 using MyBackend.Models;  // This namespace should contain ApplicationDbContext
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+
 
 // ===================================================
 // Build the WebApplication Builder
@@ -99,15 +101,30 @@ app.UseAuthorization();
 
 // 3.1. Registration Endpoint (Public)
 // Allows new users to register with a username, email, and password.
-app.MapPost("/register", async (UserRegister model, UserManager<IdentityUser> userManager) =>
+app.MapPost("/register", async (UserRegister model, UserManager<IdentityUser> userManager, ILogger<Program> logger) =>
 {
-    var user = new IdentityUser { UserName = model.Username, Email = model.Email };
-    var result = await userManager.CreateAsync(user, model.Password);
-    if (result.Succeeded)
+    try
     {
-        return Results.Ok("User registered successfully.");
+        var user = new IdentityUser { UserName = model.Username, Email = model.Email };
+        var result = await userManager.CreateAsync(user, model.Password);
+        if (result.Succeeded)
+        {
+            return Results.Ok("User registered successfully.");
+        }
+        return Results.BadRequest(result.Errors);
     }
-    return Results.BadRequest(result.Errors);
+    catch(Exception ex)
+    {
+        // Log full exception
+        logger.LogError(ex, "Registration Error for user {Username}", model.Username);
+
+        // Temporarily include the exception details in the response:
+        return Results.Problem(
+            detail: ex.ToString(),
+            title: "Registration Exception",
+            statusCode: 500
+        );
+    }
 });
 
 
@@ -147,10 +164,9 @@ app.MapPost("/login", async (UserLogin login, UserManager<IdentityUser> userMana
 });
 
 
-// 3.3. Protected Root Endpoint
-// This endpoint requires a valid JWT token.
-app.MapGet("/", () => "Hello from .NET API!")
-   .RequireAuthorization();
+// 3.3. un Protected Root Endpoint
+// This endpoint doesnt require a valid JWT token.
+app.MapGet("/", () => "Woohoo it worked");
 
 
 // 3.4. Protected Tasks Endpoints
@@ -208,6 +224,14 @@ app.MapDelete("/tasks/{id}", async (int id, ApplicationDbContext db) =>
     return Results.NoContent();
 })
 .RequireAuthorization();
+
+
+// Ensure the database is created and all migrations are applied
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 
 

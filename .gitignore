@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Ignore local SQLite DB and publish artifacts
+app.db
+*.db
+publish/
+publish.zip
