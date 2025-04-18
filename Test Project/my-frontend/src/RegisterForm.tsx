@@ -1,47 +1,75 @@
-import React from "react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+// ─────────────────────────────────────────────────────────────────────────────
+// External Dependencies
+// ─────────────────────────────────────────────────────────────────────────────
+import React, { useState, useCallback } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types & Interfaces
+// ─────────────────────────────────────────────────────────────────────────────
 interface RegisterFormProps {
   onRegister: (message: string) => void;
 }
 
-const API = import.meta.env.VITE_API_URL;
+// ─────────────────────────────────────────────────────────────────────────────
+// Configuration Constants
+// ─────────────────────────────────────────────────────────────────────────────
+const API_URL = import.meta.env.VITE_API_URL ?? "";
 
-function RegisterForm({ onRegister }: RegisterFormProps) {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+// ─────────────────────────────────────────────────────────────────────────────
+// RegisterForm Component
+// ─────────────────────────────────────────────────────────────────────────────
+const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
+  // ───────────────────────────────────────────────────────────────────────────
+  // State: Form Fields & Error
+  // ───────────────────────────────────────────────────────────────────────────
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Navigation Hook
+  // ───────────────────────────────────────────────────────────────────────────
   const navigate = useNavigate();
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(`${API}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          Username: username,
-          Email: email,
-          Password: password,
-        }),
-      });
+  // ───────────────────────────────────────────────────────────────────────────
+  // Handler: Form Submission
+  // ───────────────────────────────────────────────────────────────────────────
+  const handleRegister = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError(""); // Reset previous error
+      try {
+        const response = await fetch(`${API_URL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            Username: username,
+            Email: email,
+            Password: password,
+          }),
+        });
 
-      if (response.ok) {
+        if (!response.ok) {
+          setError("Registration failed. Please check your details.");
+          return;
+        }
+
         const message = await response.text();
         onRegister(message);
-        navigate("/login"); // ← send them back to login
-      } else {
-        setError("Registration failed. Please check your details.");
+        navigate("/login", { replace: true }); // Redirect to login after successful registration
+      } catch (err) {
+        console.error("Registration error:", err);
+        setError("An error occurred. Please try again.");
       }
-    } catch (err) {
-      console.error("Error during registration:", err);
-      setError("An error occurred. Please try again.");
-    }
-  };
+    },
+    [username, email, password, onRegister, navigate]
+  );
 
+  // ───────────────────────────────────────────────────────────────────────────
+  // Render: Registration Form UI
+  // ───────────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form
@@ -50,7 +78,8 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
       >
         <h2 className="text-2xl font-bold mb-4">Register</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
-        <label className="block mb-2">
+
+        <label className="block mb-4">
           <span className="block text-sm font-medium mb-1">Username</span>
           <input
             type="text"
@@ -89,7 +118,8 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
         >
           Register
         </button>
-        {/* Link to navigate to Register page */}
+
+        {/* Link to navigate to login page */}
         <p className="text-center mt-4">
           <Link to="/login" className="text-blue-500 underline">
             Already have an account? Login here.
@@ -98,6 +128,6 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
       </form>
     </div>
   );
-}
+};
 
 export default RegisterForm;
