@@ -5,16 +5,11 @@ import { ReactNode, useCallback, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Styles
-// ─────────────────────────────────────────────────────────────────────────────
-import "./App.css";
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Components / Pages
 // ─────────────────────────────────────────────────────────────────────────────
-import LoginForm from "./LoginForm";
-import RegisterForm from "./RegisterForm";
-import TasksPage from "./TasksPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import TasksPage from "./pages/TasksPage";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants & Config
@@ -62,10 +57,10 @@ const App: React.FC = () => {
   return (
     <Routes>
       {/* Public routes */}
-      <Route path="/login" element={<LoginForm onLogin={handleLogin} />} />
+      <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
       <Route
         path="/register"
-        element={<RegisterForm onRegister={handleRegister} />}
+        element={<RegisterPage onRegister={handleRegister} />}
       />
 
       {/* Protected route: tasks */}

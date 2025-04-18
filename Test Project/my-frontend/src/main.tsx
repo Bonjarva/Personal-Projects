@@ -23,7 +23,9 @@ createRoot(rootElement).render(
   <StrictMode>
     {/* BrowserRouter provides routing context for the entire app */}
     <BrowserRouter>
-      <App />
+      <div className="container mx-auto px-4">
+        <App />
+      </div>
     </BrowserRouter>
   </StrictMode>
 );

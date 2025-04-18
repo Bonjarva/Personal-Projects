@@ -7,7 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 // ─────────────────────────────────────────────────────────────────────────────
 // Types & Interfaces
 // ─────────────────────────────────────────────────────────────────────────────
-interface LoginFormProps {
+interface LoginPageProps {
   onLogin: (token: string) => void;
 }
 
@@ -18,9 +18,9 @@ interface LoginFormProps {
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LoginForm Component
+// LoginPage Component
 // ─────────────────────────────────────────────────────────────────────────────
-const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   // ───────────────────────────────────────────────────────────────────────────
   // State: Form fields & error message
   // ───────────────────────────────────────────────────────────────────────────
@@ -114,4 +114,4 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLogin }) => {
   );
 };
 
-export default LoginForm;
+export default LoginPage;

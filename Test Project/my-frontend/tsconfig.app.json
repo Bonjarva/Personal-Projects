@@ -22,5 +22,10 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+    "src",
+    "postcss.config.cjs",
+    "tailwind.config.js",
+    "vite-env.d.ts"
+  ]
 }

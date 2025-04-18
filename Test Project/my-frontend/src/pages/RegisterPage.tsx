@@ -7,7 +7,7 @@ import { useNavigate, Link } from "react-router-dom";
 // ─────────────────────────────────────────────────────────────────────────────
 // Types & Interfaces
 // ─────────────────────────────────────────────────────────────────────────────
-interface RegisterFormProps {
+interface RegisterPageProps {
   onRegister: (message: string) => void;
 }
 
@@ -17,9 +17,9 @@ interface RegisterFormProps {
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RegisterForm Component
+// RegisterPage Component
 // ─────────────────────────────────────────────────────────────────────────────
-const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
+const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
   // ───────────────────────────────────────────────────────────────────────────
   // State: Form Fields & Error
   // ───────────────────────────────────────────────────────────────────────────
@@ -130,4 +130,4 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegister }) => {
   );
 };
 
-export default RegisterForm;
+export default RegisterPage;
