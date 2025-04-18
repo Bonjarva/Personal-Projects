@@ -1,4 +1,6 @@
+import React from "react";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 interface LoginFormProps {
   onLogin: (token: string) => void;
@@ -10,6 +12,8 @@ function LoginForm({ onLogin }: LoginFormProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +27,7 @@ function LoginForm({ onLogin }: LoginFormProps) {
         const data = await response.json();
         onLogin(data.token);
         localStorage.setItem("authToken", data.token);
+        navigate("/tasks"); // ← send them to the tasks page
       } else {
         setError("Login failed. Please check your credentials.");
       }
@@ -67,6 +72,12 @@ function LoginForm({ onLogin }: LoginFormProps) {
         >
           Login
         </button>
+        {/* Link to navigate to Register page */}
+        <p className="text-center mt-4">
+          <Link to="/register" className="text-blue-500 underline">
+            Don't have an account? Register here.
+          </Link>
+        </p>
       </form>
     </div>
   );

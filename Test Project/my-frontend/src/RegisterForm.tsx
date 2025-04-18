@@ -1,4 +1,6 @@
+import React from "react";
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 interface RegisterFormProps {
   onRegister: (message: string) => void;
@@ -11,6 +13,8 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
+  const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +32,7 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
       if (response.ok) {
         const message = await response.text();
         onRegister(message);
+        navigate("/login"); // ← send them back to login
       } else {
         setError("Registration failed. Please check your details.");
       }
@@ -84,6 +89,12 @@ function RegisterForm({ onRegister }: RegisterFormProps) {
         >
           Register
         </button>
+        {/* Link to navigate to Register page */}
+        <p className="text-center mt-4">
+          <Link to="/login" className="text-blue-500 underline">
+            Already have an account? Login here.
+          </Link>
+        </p>
       </form>
     </div>
   );
