@@ -1,6 +1,12 @@
-import { useState, useEffect } from "react";
+// ─────────────────────────────────────────────────────────────────────────────
+// External Dependencies
+// ─────────────────────────────────────────────────────────────────────────────
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Types & Interfaces
+// ─────────────────────────────────────────────────────────────────────────────
 interface TaskItem {
   id: number;
   title: string;
@@ -13,21 +19,30 @@ interface TasksPageProps {
   onLogout: () => void;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TasksPage Component
+// ─────────────────────────────────────────────────────────────────────────────
 export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
+  // ───────────────────────────────────────────────────────────────────────────
+  // Router & Navigation Hook
+  // ───────────────────────────────────────────────────────────────────────────
   const navigate = useNavigate();
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // State: Task Data & Editing
+  // ───────────────────────────────────────────────────────────────────────────
   const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskTitle, setNewTaskTitle] = useState<string>("");
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
-  const [editingTaskTitle, setEditingTaskTitle] = useState("");
+  const [editingTaskTitle, setEditingTaskTitle] = useState<string>("");
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // Fetch tasks (inside TasksPage component)
-  // ─────────────────────────────────────────────────────────────────────────────
-
+  // ───────────────────────────────────────────────────────────────────────────
+  // Effect: Load Tasks and Handle Auth
+  // ───────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     // If no token at all, immediately kick back to login
     if (!token) {
-      onLogout();
+      onLogout(); // clear auth
       navigate("/login", { replace: true });
       return;
     }
@@ -58,9 +73,13 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
     loadTasks();
   }, [token, apiUrl, onLogout, navigate]);
 
-  const addTask = async () => {
+  // ───────────────────────────────────────────────────────────────────────────
+  // Handlers: CRUD Operations
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const addTask = useCallback(async () => {
     if (!newTaskTitle.trim()) return;
-    const response = await fetch(`${apiUrl}/tasks`, {
+    const res = await fetch(`${apiUrl}/tasks`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -68,92 +87,91 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
       },
       body: JSON.stringify({ title: newTaskTitle, isCompleted: false }),
     });
-    if (response.ok) {
-      const created = await response.json();
-      setTasks((t) => [...t, created]);
+    if (res.ok) {
+      const created: TaskItem = await res.json();
+      setTasks((prev) => [...prev, created]);
       setNewTaskTitle("");
     }
-  };
+  }, [newTaskTitle, apiUrl, token]);
 
-  const deleteTask = async (id: number) => {
-    if (!token) return;
-    const response = await fetch(`${apiUrl}/tasks/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (response.ok) {
-      setTasks(tasks.filter((task) => task.id !== id));
-    }
-  };
-
-  const updateTask = async (id: number) => {
-    if (!token) return;
-    const updatedTask = { title: editingTaskTitle, isCompleted: false };
-    const response = await fetch(`${apiUrl}/tasks/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updatedTask),
-    });
-    if (response.ok) {
-      // Check if response has no content (204) or has updated task data
-      if (response.status === 204) {
-        setTasks(
-          tasks.map((task) =>
-            task.id === id ? { ...task, title: editingTaskTitle } : task
-          )
-        );
-      } else {
-        // If response contains content, parse the JSON
-        const updatedTaskData = await response.json();
-        setTasks(
-          tasks.map((task) => (task.id === id ? updatedTaskData : task))
-        );
+  const deleteTask = useCallback(
+    async (id: number) => {
+      const res = await fetch(`${apiUrl}/tasks/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setTasks((prev) => prev.filter((t) => t.id !== id));
       }
-      setEditingTaskId(null);
-      setEditingTaskTitle("");
-    } else {
-      console.error("Failed to update task", response.status);
-    }
-  };
+    },
+    [apiUrl, token]
+  );
 
-  const startEditing = (task: TaskItem) => {
+  const startEditing = useCallback((task: TaskItem) => {
     setEditingTaskId(task.id);
     setEditingTaskTitle(task.title);
-  };
+  }, []);
 
-  const cancelEditing = () => {
+  const cancelEditing = useCallback(() => {
     setEditingTaskId(null);
     setEditingTaskTitle("");
-  };
+  }, []);
 
-  const toggleCompletion = async (task: TaskItem) => {
-    if (!token) return;
-    // Create a new task object with the toggled isCompleted value
-    const updatedTask = { title: task.title, isCompleted: !task.isCompleted };
+  const updateTask = useCallback(
+    async (id: number) => {
+      const updated = { title: editingTaskTitle, isCompleted: false };
+      const res = await fetch(`${apiUrl}/tasks/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updated),
+      });
+      if (res.ok) {
+        // Check if response has no content (204) or has updated task data
+        if (res.status === 204) {
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.id === id ? { ...t, title: editingTaskTitle } : t
+            )
+          );
+        } else {
+          // If response contains content, parse the JSON
+          const data: TaskItem = await res.json();
+          setTasks((prev) => prev.map((t) => (t.id === id ? data : t)));
+        }
+        cancelEditing();
+      }
+    },
+    [editingTaskTitle, apiUrl, token, cancelEditing]
+  );
 
-    const response = await fetch(`${apiUrl}/tasks/${task.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(updatedTask),
-    });
+  const toggleCompletion = useCallback(
+    async (task: TaskItem) => {
+      const updated = { title: task.title, isCompleted: !task.isCompleted };
+      const res = await fetch(`${apiUrl}/tasks/${task.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updated),
+      });
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t
+          )
+        );
+      }
+    },
+    [apiUrl, token]
+  );
 
-    if (response.ok) {
-      // Update the task list locally
-      setTasks(
-        tasks.map((t) =>
-          t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t
-        )
-      );
-    } else {
-      console.error("Failed to toggle task completion", response.status);
-    }
-  };
+  // ───────────────────────────────────────────────────────────────────────────
+  // Render: UI
+  // ───────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
@@ -169,56 +187,56 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
           </button>
         </div>
 
-        {/* List */}
+        {/* Task List */}
         <ul className="space-y-4">
           {tasks.map((task) => (
             <li
               key={task.id}
               className="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md"
             >
-              {/* Task buttons */}
               {editingTaskId === task.id ? (
+                // Edit Mode
                 <>
                   <input
                     type="text"
                     value={editingTaskTitle}
                     onChange={(e) => setEditingTaskTitle(e.target.value)}
-                    className="border p-1 mr-2"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-md mr-2"
                   />
                   <button
                     onClick={() => updateTask(task.id)}
-                    className="bg-green-500 text-white px-2 py-1 mr-2 rounded"
+                    className="bg-green-500 text-white px-3 py-1 mr-2 rounded-md"
                   >
                     Save
                   </button>
                   <button
                     onClick={cancelEditing}
-                    className="bg-gray-500 text-white px-2 py-1 rounded"
+                    className="bg-gray-500 text-white px-3 py-1 rounded-md"
                   >
                     Cancel
                   </button>
                 </>
               ) : (
+                // View Mode
                 <>
-                  <span className="mr-4">
-                    {task.title} {task.isCompleted ? "(Completed)" : ""}
+                  <span className="flex-1 mr-4 break-all">
+                    {task.title} {task.isCompleted && "(Completed)"}
                   </span>
                   <button
                     onClick={() => startEditing(task)}
-                    className="bg-yellow-500 text-white px-2 py-1 mr-2 rounded"
+                    className="bg-yellow-500 text-white px-3 py-1 mr-2 rounded-md"
                   >
                     Edit
                   </button>
-                  {/* New: Toggle Completion Button */}
                   <button
                     onClick={() => toggleCompletion(task)}
-                    className="bg-blue-500 text-white px-2 py-1 mr-2 rounded"
+                    className="bg-blue-500 text-white px-3 py-1 mr-2 rounded-md"
                   >
-                    {task.isCompleted ? "Mark Incomplete" : "Mark Complete"}
+                    {task.isCompleted ? "Undo" : "Complete"}
                   </button>
                   <button
                     onClick={() => deleteTask(task.id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
+                    className="bg-red-500 text-white px-3 py-1 rounded-md"
                   >
                     Delete
                   </button>
@@ -228,7 +246,7 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
           ))}
         </ul>
 
-        {/* New task form */}
+        {/* New Task Form */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
