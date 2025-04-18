@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface TaskItem {
   id: number;
@@ -13,23 +14,49 @@ interface TasksPageProps {
 }
 
 export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingTaskTitle, setEditingTaskTitle] = useState("");
 
-  // Fetch tasks
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Fetch tasks (inside TasksPage component)
+  // ─────────────────────────────────────────────────────────────────────────────
+
   useEffect(() => {
-    fetch(`${apiUrl}/tasks`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((r) => r.json())
-      .then(setTasks)
-      .catch(console.error);
-  }, [token, apiUrl]);
+    // If no token at all, immediately kick back to login
+    if (!token) {
+      onLogout();
+      navigate("/login", { replace: true });
+      return;
+    }
+
+    const loadTasks = async () => {
+      try {
+        const res = await fetch(`${apiUrl}/tasks`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        // If token expired/invalid, log out and redirect
+        if (res.status === 401) {
+          onLogout();
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        const data: TaskItem[] = await res.json();
+        setTasks(data);
+      } catch (err) {
+        console.error("Error fetching tasks:", err);
+      }
+    };
+
+    loadTasks();
+  }, [token, apiUrl, onLogout, navigate]);
 
   const addTask = async () => {
     if (!newTaskTitle.trim()) return;
