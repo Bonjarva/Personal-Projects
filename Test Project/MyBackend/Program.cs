@@ -108,63 +108,6 @@ app.MapControllers();
 app.MapGet("/", () => "Woohoo it worked");
 
 
-// 3.4. Protected Tasks Endpoints
-
-
-
-// GET /tasks - Retrieve all tasks
-app.MapGet("/tasks", async (ApplicationDbContext db) =>
-{
-    var tasks = await db.Tasks.ToListAsync();
-    return Results.Ok(tasks);
-})
-.RequireAuthorization();
-
-
-
-
-// POST /tasks - Create a new task
-app.MapPost("/tasks", async (TaskItem task, ApplicationDbContext db) =>
-{
-    db.Tasks.Add(task);
-    await db.SaveChangesAsync();
-    return Results.Created($"/tasks/{task.Id}", task);
-})
-.RequireAuthorization();
-
-
-
-
-// PUT /tasks/{id} - Update an existing task
-app.MapPut("/tasks/{id}", async (int id, TaskItem updatedTask, ApplicationDbContext db) =>
-{
-    var task = await db.Tasks.FindAsync(id);
-    if (task is null)
-        return Results.NotFound();
-    task.Title = updatedTask.Title;
-    task.IsCompleted = updatedTask.IsCompleted;
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-})
-.RequireAuthorization();
-
-
-
-
-
-// DELETE /tasks/{id} - Delete a task
-app.MapDelete("/tasks/{id}", async (int id, ApplicationDbContext db) =>
-{
-    var task = await db.Tasks.FindAsync(id);
-    if (task is null)
-        return Results.NotFound();
-    db.Tasks.Remove(task);
-    await db.SaveChangesAsync();
-    return Results.NoContent();
-})
-.RequireAuthorization();
-
-
 // Ensure the database is created and all migrations are applied
 using (var scope = app.Services.CreateScope())
 {
