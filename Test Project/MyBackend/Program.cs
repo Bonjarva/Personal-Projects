@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.EntityFrameworkCore;
 using MyBackend.Models;  // This namespace should contain ApplicationDbContext
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
-
 
 // ===================================================
 // Build the WebApplication Builder
@@ -69,6 +65,11 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddControllers();
+
+
+
+
 // ===================================================
 // Build the Application
 // ===================================================
@@ -99,69 +100,7 @@ app.UseAuthorization();
 // ===================================================
 
 
-// 3.1. Registration Endpoint (Public)
-// Allows new users to register with a username, email, and password.
-app.MapPost("/register", async (UserRegister model, UserManager<IdentityUser> userManager, ILogger<Program> logger) =>
-{
-    try
-    {
-        var user = new IdentityUser { UserName = model.Username, Email = model.Email };
-        var result = await userManager.CreateAsync(user, model.Password);
-        if (result.Succeeded)
-        {
-            return Results.Ok("User registered successfully.");
-        }
-        return Results.BadRequest(result.Errors);
-    }
-    catch(Exception ex)
-    {
-        // Log full exception
-        logger.LogError(ex, "Registration Error for user {Username}", model.Username);
-
-        // Temporarily include the exception details in the response:
-        return Results.Problem(
-            detail: ex.ToString(),
-            title: "Registration Exception",
-            statusCode: 500
-        );
-    }
-});
-
-
-// 3.2. Login Endpoint (Public)
-// Validates user credentials and issues a JWT token on success.
-app.MapPost("/login", async (UserLogin login, UserManager<IdentityUser> userManager) =>
-{
-    // Validate that Username and Password are provided
-    if (string.IsNullOrWhiteSpace(login.Username) || string.IsNullOrWhiteSpace(login.Password))
-    {
-        return Results.BadRequest("Username and password must be provided.");
-    }
-
-    var user = await userManager.FindByNameAsync(login.Username);
-    if (user != null && await userManager.CheckPasswordAsync(user, login.Password))
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new[]
-            {
-
-                
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Name, user.UserName!)
-            }),
-            Expires = DateTime.UtcNow.AddHours(1),
-            SigningCredentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
-                SecurityAlgorithms.HmacSha256Signature)
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        var tokenString = tokenHandler.WriteToken(token);
-        return Results.Ok(new { token = tokenString });
-    }
-    return Results.Unauthorized();
-});
+app.MapControllers();
 
 
 // 3.3. un Protected Root Endpoint
@@ -239,9 +178,3 @@ using (var scope = app.Services.CreateScope())
 // 4. Run the Application
 // ===================================================
 app.Run();
-
-// ===================================================
-// Data Transfer Objects (DTOs)
-// ===================================================
-record UserRegister(string Username, string Email, string Password);
-record UserLogin(string Username, string Password);

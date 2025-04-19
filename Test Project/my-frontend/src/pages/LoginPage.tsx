@@ -41,13 +41,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       e.preventDefault();
       setError(""); // Reset previous errors
       try {
-        const response = await fetch(`${API_URL}/login`, {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ Username: username, Password: password }),
         });
         if (!response.ok) {
-          setError("Login failed. Please check your credentials.");
+          const data = await response.json();
+          // If we returned `{ errors: string[] }`, join them:
+          if (Array.isArray(data.errors)) {
+            setError(data.errors.join("; "));
+          } else {
+            setError("Login failed. Please check your credentials.");
+          }
           return;
         }
         const { token } = await response.json();

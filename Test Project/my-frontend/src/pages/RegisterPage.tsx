@@ -41,7 +41,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
       e.preventDefault();
       setError(""); // Reset previous error
       try {
-        const response = await fetch(`${API_URL}/register`, {
+        const response = await fetch(`${API_URL}/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -52,7 +52,13 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
         });
 
         if (!response.ok) {
-          setError("Registration failed. Please check your details.");
+          const data = await response.json();
+          // If we returned `{ errors: string[] }`, join them:
+          if (Array.isArray(data.errors)) {
+            setError(data.errors.join("; "));
+          } else {
+            setError("Registration failed. Please check your details.");
+          }
           return;
         }
 
