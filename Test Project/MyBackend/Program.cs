@@ -103,11 +103,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 
-// 3.3. un Protected Root Endpoint
-// This endpoint doesnt require a valid JWT token.
-app.MapGet("/", () => "Woohoo it worked");
-
-
 // Ensure the database is created and all migrations are applied
 using (var scope = app.Services.CreateScope())
 {
