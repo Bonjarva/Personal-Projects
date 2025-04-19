@@ -1,48 +1,69 @@
 using Microsoft.EntityFrameworkCore;
-using MyBackend.Models;  // This namespace should contain ApplicationDbContext
-using MyBackend.Extensions;
+using MyBackend.Extensions;       // your service extensions
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
-// ===================================================
-// Build the WebApplication Builder
-// ===================================================
 var builder = WebApplication.CreateBuilder(args);
 
+// ─────────────────────────────────────────────────────────────
+// 1) Configure Services
+// ─────────────────────────────────────────────────────────────
+
 builder.Services
-       .AddDatabase(builder.Configuration)
-       .AddIdentityStores()
-       .AddCookiePolicyForApi()
-       .AddJwtAuth(builder.Configuration)
-       .AddCorsDev()
-       .AddSwaggerDev(builder.Environment)
-       .AddControllers();
+    .AddDatabase(builder.Configuration)          // DbContext + SQLite
+    .AddIdentityStores()                          // ASP.NET Identity
+    .AddCookiePolicyForApi()                      // no‐redirect for API
+    .AddJwtAuth(builder.Configuration)            // JWT‐Bearer
+    .AddCorsDev()                                 // AllowAll CORS in dev
+    .AddSwaggerDev(builder.Environment)           // Swagger in dev
+    .AddControllers();
+
+// REGISTER health checks **separately**, since it returns IHealthChecksBuilder:
+builder.Services.AddHealthChecks();
+
+// ─────────────────────────────────────────────────────────────
+// 2) Build pipeline
+// ─────────────────────────────────────────────────────────────
 
 var app = builder.Build();
 
-// swagger only in dev
+// dev vs prod middleware
 if (app.Environment.IsDevelopment())
-  app.UseSwagger().UseSwaggerUI();
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger().UseSwaggerUI();
+}
+else
+{
+    app.UseExceptionHandler("/error");  // you’d want an ErrorController
+    app.UseHsts();
+}
+
+
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map all [ApiController] endpoints:
+// ─────────────────────────────────────────────────────────────
+// 3) Map endpoints
+// ─────────────────────────────────────────────────────────────
+
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 
 
 
-// Ensure the database is created and all migrations are applied
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
+// ─────────────────────────────────────────────────────────────
+// 4) Database migrations on startup
+// ─────────────────────────────────────────────────────────────
 
+app.Services.MigrateDatabase();  // small extension below
 
+// ─────────────────────────────────────────────────────────────
+// 5) Run
+// ─────────────────────────────────────────────────────────────
 
-// ===================================================
-// 4. Run the Application
-// ===================================================
 app.Run();

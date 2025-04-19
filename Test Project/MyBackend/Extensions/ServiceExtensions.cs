@@ -117,6 +117,13 @@ public static IServiceCollection AddJwtAuth(this IServiceCollection services, IC
 
             return services;
         }
+        public static IHost MigrateDatabase(this IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.Migrate();
+            return services.GetRequiredService<IHost>(); 
+        }
 }
 }
 
