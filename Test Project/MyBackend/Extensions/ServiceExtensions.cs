@@ -68,13 +68,25 @@ public static IServiceCollection AddJwtAuth(this IServiceCollection services, IC
     return services;
 }
 
-  public static IServiceCollection AddCorsDev(this IServiceCollection services)
-  {
-    services.AddCors(o => o.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
-                                                       .AllowAnyMethod()
-                                                       .AllowAnyHeader()));
-    return services;
-  }
+  public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration config)
+        {
+            var origins = config
+                .GetSection("Cors:AllowedOrigins")
+                .Get<string[]>() 
+                ?? throw new InvalidOperationException("Cors:AllowedOrigins missing");
+
+            services.AddCors(opts =>
+            {
+                opts.AddPolicy("Frontend", policy =>
+                    policy
+                      .WithOrigins(origins)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                );
+            });
+
+            return services;
+        }
 
   public static IServiceCollection AddSwaggerDev(this IServiceCollection services, IWebHostEnvironment env)
   {

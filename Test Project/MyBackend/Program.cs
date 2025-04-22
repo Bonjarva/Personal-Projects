@@ -13,7 +13,7 @@ builder.Services
     .AddIdentityStores()                          // ASP.NET Identity
     .AddCookiePolicyForApi()                      // no‐redirect for API
     .AddJwtAuth(builder.Configuration)            // JWT‐Bearer
-    .AddCorsDev()                                 // AllowAll CORS in dev
+    .AddCorsPolicy(builder.Configuration)                                 // AllowAll CORS in dev
     .AddSwaggerDev(builder.Environment)           // Swagger in dev
     .AddControllers();
 
@@ -42,7 +42,7 @@ else
 
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
