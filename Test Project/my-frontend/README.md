@@ -1,54 +1,96 @@
-# React + TypeScript + Vite
+MyFrontend
+A Vite + React + TypeScript front‑end for a simple Tasks application backed by a .NET API. Uses Tailwind CSS for styling and React Router for client‑side routing.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🚀 Quick Start
+Clone the repo
+git clone https://github.com/<your‑org>/Test‑Project.git
+cd Test‑Project/my‑frontend
 
-Currently, two official plugins are available:
+Install dependencies
+npm install
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+or
+yarn
 
-## Expanding the ESLint configuration
+Environment variables
+Create a .env.development at project root:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+ini
+Copy
+Edit
+VITE_API_URL=http://localhost:5294
+(Adjust if your backend runs on a different URL/port.)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+Run the dev server
+npm run dev
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+or
+yarn dev
+Navigate to http://localhost:5173.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Build for production
+npm run build
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+or
+yarn build
+The output will be in dist/.
+
+Preview production build
+npm run preview
+
+or
+yarn preview
+
+📁 Folder Structure
+my‑frontend/
+├── public/ Static assets (favicon, robots.txt, etc.)
+├── src/
+│ ├── assets/ Images, fonts, SVGs
+│ ├── components/ Reusable UI components (Buttons, Inputs…)
+│ ├── pages/ Route “screens” (LoginPage, RegisterPage, TasksPage)
+│ ├── services/ API wrapper functions (login, fetchTasks…)
+│ ├── hooks/ Custom React hooks (useAuth, useTasks…)
+│ ├── utils/ Pure helpers (formatters, validators…)
+│ ├── App.tsx Route definitions & layout
+│ ├── main.tsx React entry‑point (hydrate + BrowserRouter)
+│ ├── index.css Tailwind directives + any global overrides
+│ ├── tailwind.config.js Tailwind customization (colors, fonts, darkmode)
+│ └── postcss.config.cjs PostCSS setup for Tailwind
+├── .env.development Dev‑only env vars
+├── .env.production Prod‑only env vars
+├── vite.config.ts Vite configuration
+├── tsconfig.json TypeScript settings
+└── vite‑env.d.ts Vite type declarations
+
+🛠️ Scripts
+npm run dev / yarn dev
+Start the development server with HMR.
+
+npm run build / yarn build
+Bundle for production (output in dist/).
+
+npm run preview / yarn preview
+Serve the production build locally.
+
+🔧 Configuration
+Tailwind CSS
+Config in tailwind.config.js—customize colors, fonts, dark mode, etc.
+
+Tailwind layers in src/index.css via @tailwind base, @tailwind components, @tailwind utilities.
+
+Environment Variables
+VITE_API_URL
+Base URL for the backend API. Required in .env.development and .env.production.
+
+🤝 Contributing
+Fork the repo
+
+Create a branch:
+git checkout -b feature/your‑feature
+
+Commit your changes with clear messages
+
+Push & open a Pull Request
+
+📄 License
+This project is MIT Licensed.
