@@ -11,6 +11,13 @@ interface RegisterPageProps {
   onRegister: (message: string) => void;
 }
 
+interface ErrorResponse {
+  errors?: string[];
+  title?: string;
+  detail?: string;
+  [key: string]: unknown;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Configuration Constants
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,13 +59,31 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          // If we returned `{ errors: string[] }`, join them:
-          if (Array.isArray(data.errors)) {
-            setError(data.errors.join("; "));
-          } else {
-            setError("Registration failed. Please check your details.");
+          let errText = "";
+
+          try {
+            const payload = (await response.json()) as ErrorResponse;
+            if (Array.isArray(payload.errors)) {
+              errText = payload.errors.join("; ");
+            } else {
+              errText =
+                payload.detail ??
+                payload.title ??
+                JSON.stringify(payload, null, 2);
+            }
+          } catch {
+            // fallback to plain text (or HTML)
+            try {
+              errText = await response.text();
+            } catch {
+              errText = "Unknown error";
+            }
           }
+
+          console.error("Register error response:", errText);
+          setError(
+            errText || "Registration failed. Please check your details."
+          );
           return;
         }
 
