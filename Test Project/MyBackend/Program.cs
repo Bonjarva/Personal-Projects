@@ -1,6 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using MyBackend.Extensions;       // your service extensions
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using MyBackend.Extensions.Middleware;
+using MyBackend.Models;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,8 +21,12 @@ builder.Services
     .AddSwaggerDev(builder.Environment)           // Swagger in dev
     .AddControllers();
 
-// REGISTER health checks **separately**, since it returns IHealthChecksBuilder:
-builder.Services.AddHealthChecks();
+builder.Services
+  .AddHealthChecks()
+  .AddDbContextCheck<ApplicationDbContext>(   // checks EF Core can open a connection
+     name: "sqlite",
+     failureStatus: HealthStatus.Unhealthy,
+     tags: new[] { "db", "ready" });
 
 // ─────────────────────────────────────────────────────────────
 // 2) Build pipeline
@@ -26,20 +34,23 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
+// API‑only JSON exception handler
+app.UseWhen(
+  ctx => ctx.Request.Path.StartsWithSegments("/api"),
+  branch => branch.UseMiddleware<GlobalExceptionHandlerMiddleware>()
+);
+
 // dev vs prod middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger().UseSwaggerUI();
 }
 else
 {
     app.UseExceptionHandler("/error");  // you’d want an ErrorController
     app.UseHsts();
+    app.UseStatusCodePagesWithReExecute("/error/{0}");
 }
-
-app.UseStatusCodePagesWithReExecute("/error/{0}");
-
 
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
@@ -51,7 +62,7 @@ app.UseAuthorization();
 // ─────────────────────────────────────────────────────────────
 
 app.MapControllers();
-app.MapHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions{});
 
 
 
