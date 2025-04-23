@@ -23,6 +23,7 @@ builder.Services
 
 builder.Services
   .AddHealthChecks()
+  .AddCheck("self", () => HealthCheckResult.Healthy(), tags: new[] { "live" })
   .AddDbContextCheck<ApplicationDbContext>(   // checks EF Core can open a connection
      name: "sqlite",
      failureStatus: HealthStatus.Unhealthy,
@@ -63,6 +64,25 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHealthChecks("/health", new HealthCheckOptions{});
+
+// Liveness: just “is this process up?”
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+
+// Readiness: “are my critical dependencies up?”
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    // return 503 if any are unhealthy
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK
+    }
+});
 
 
 
