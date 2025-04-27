@@ -7,9 +7,11 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // ─────────────────────────────────────────────────────────────────────────────
 // Components / Pages
 // ─────────────────────────────────────────────────────────────────────────────
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TasksPage from "./pages/TasksPage";
+import NavBar from "./components/NavBar";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants & Config
@@ -55,34 +57,40 @@ const App: React.FC = () => {
   // Routes Definition
   // ───────────────────────────────────────────────────────────────────────────
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-      <Route
-        path="/register"
-        element={<RegisterPage onRegister={handleRegister} />}
-      />
+    <>
+      <NavBar token={token} onLogout={handleLogout} />
+      <Routes>
+        {/* 1. Home */}
+        <Route path="/" element={<HomePage />} />
 
-      {/* Protected route: tasks */}
-      <Route
-        path="/tasks"
-        element={
-          <RequireAuth>
-            <TasksPage
-              token={token!}
-              apiUrl={API_URL}
-              onLogout={handleLogout}
-            />
-          </RequireAuth>
-        }
-      />
+        {/* 2. Public routes */}
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+        <Route
+          path="/register"
+          element={<RegisterPage onRegister={handleRegister} />}
+        />
 
-      {/* Fallback: send to tasks if logged in, otherwise login */}
-      <Route
-        path="*"
-        element={<Navigate to={token ? "/tasks" : "/login"} replace />}
-      />
-    </Routes>
+        {/* 3. Protected route: tasks */}
+        <Route
+          path="/tasks"
+          element={
+            <RequireAuth>
+              <TasksPage
+                token={token!}
+                apiUrl={API_URL}
+                onLogout={handleLogout}
+              />
+            </RequireAuth>
+          }
+        />
+
+        {/* Fallback: send to tasks if logged in, otherwise home page */}
+        <Route
+          path="*"
+          element={<Navigate to={token ? "/tasks" : "/"} replace />}
+        />
+      </Routes>
+    </>
   );
 };
 
