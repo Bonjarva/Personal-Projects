@@ -10,7 +10,7 @@ export default function NavBar({ token, onLogout }: NavBarProps) {
   const linkClasses = (isActive: boolean) =>
     `px-4 py-2 rounded transition-colors ${
       isActive
-        ? "bg-blue-700 text-blue-500"
+        ? "bg-blue-700 text-white"
         : "bg-transparent text-gray-900 hover:bg-gray-100"
     }`;
 

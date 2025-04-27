@@ -1,7 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/pages/**/*.{js,ts,jsx,tsx}"],
-  darkMode: "media", // or 'class' if you prefer manual toggling
+  content: [
+    "./index.html", // if you use any classes in your HTML template
+    "./src/**/*.{js,ts,jsx,tsx}", // scan all of src for Tailwind classes
+  ],
+  darkMode: "media", // or 'class'
   theme: {
     extend: {
       fontFamily: {
