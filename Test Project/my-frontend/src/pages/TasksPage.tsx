@@ -36,6 +36,8 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
   const [editingTaskTitle, setEditingTaskTitle] = useState<string>("");
 
+  const [error, setError] = useState<string | null>(null);
+
   // ───────────────────────────────────────────────────────────────────────────
   // Effect: Load Tasks and Handle Auth
   // ───────────────────────────────────────────────────────────────────────────
@@ -78,7 +80,12 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
   // ───────────────────────────────────────────────────────────────────────────
 
   const addTask = useCallback(async () => {
-    if (!newTaskTitle.trim()) return;
+    setError(null);
+    if (!newTaskTitle.trim()) {
+      setError("Task title cannot be empty.");
+      return;
+    }
+
     const res = await fetch(`${apiUrl}/tasks`, {
       method: "POST",
       headers: {
@@ -91,17 +98,35 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
       const created: TaskItem = await res.json();
       setTasks((prev) => [...prev, created]);
       setNewTaskTitle("");
+    } else {
+      try {
+        const err = await res.json();
+        setError(err.detail ?? err.title ?? "Failed to add task.");
+      } catch {
+        setError(`Server error ${res.status}`);
+      }
     }
   }, [newTaskTitle, apiUrl, token]);
 
   const deleteTask = useCallback(
     async (id: number) => {
+      setError(null);
+
       const res = await fetch(`${apiUrl}/tasks/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setTasks((prev) => prev.filter((t) => t.id !== id));
+      } else {
+        try {
+          const err = await res.json();
+          setError(
+            err.detail ?? err.title ?? `Failed to delete task (${res.status})`
+          );
+        } catch {
+          setError(`Server error ${res.status}`);
+        }
       }
     },
     [apiUrl, token]
@@ -119,6 +144,13 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
 
   const updateTask = useCallback(
     async (id: number) => {
+      setError(null);
+
+      if (!editingTaskTitle.trim()) {
+        setError("Task title cannot be empty.");
+        return;
+      }
+
       const updated = { title: editingTaskTitle, isCompleted: false };
       const res = await fetch(`${apiUrl}/tasks/${id}`, {
         method: "PUT",
@@ -142,6 +174,15 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
           setTasks((prev) => prev.map((t) => (t.id === id ? data : t)));
         }
         cancelEditing();
+      } else {
+        try {
+          const err = await res.json();
+          setError(
+            err.detail ?? err.title ?? `Failed to update task (${res.status})`
+          );
+        } catch {
+          setError(`Server error ${res.status}`);
+        }
       }
     },
     [editingTaskTitle, apiUrl, token, cancelEditing]
@@ -149,6 +190,8 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
 
   const toggleCompletion = useCallback(
     async (task: TaskItem) => {
+      setError(null);
+
       const updated = { title: task.title, isCompleted: !task.isCompleted };
       const res = await fetch(`${apiUrl}/tasks/${task.id}`, {
         method: "PUT",
@@ -164,6 +207,15 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
             t.id === task.id ? { ...t, isCompleted: !t.isCompleted } : t
           )
         );
+      } else {
+        try {
+          const err = await res.json();
+          setError(
+            err.detail ?? err.title ?? `Failed to toggle task (${res.status})`
+          );
+        } catch {
+          setError(`Server error ${res.status}`);
+        }
       }
     },
     [apiUrl, token]
@@ -252,21 +304,24 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
             e.preventDefault();
             addTask();
           }}
-          className="mt-6 flex space-x-2"
+          className="mt-6"
         >
-          <input
-            type="text"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            placeholder="New Task"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <button
-            type="submit"
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-          >
-            Add Task
-          </button>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="New Task"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition"
+            >
+              Add Task
+            </button>
+          </div>
+          {error && <p className="mt-2 text-red-500 text-sm">{error}</p>}
         </form>
       </div>
     </div>
