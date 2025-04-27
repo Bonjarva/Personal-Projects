@@ -1,5 +1,5 @@
 // src/components/NavBar.tsx
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 interface NavBarProps {
   token: string | null;
@@ -7,52 +7,56 @@ interface NavBarProps {
 }
 
 export default function NavBar({ token, onLogout }: NavBarProps) {
+  const linkClasses = (isActive: boolean) =>
+    `px-4 py-2 rounded transition-colors ${
+      isActive
+        ? "bg-blue-700 text-blue-500"
+        : "bg-transparent text-gray-900 hover:bg-gray-100"
+    }`;
+
   return (
     <header className="bg-white shadow-md">
       <nav className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Logo / Brand */}
-        <Link to="/" className="text-2xl font-extrabold text-blue-600">
+        <NavLink to="/" className="text-2xl font-extrabold text-blue-600">
           My Tasks
-        </Link>
+        </NavLink>
 
         {/* Links */}
-        <div className="space-x-4">
-          <Link
-            to="/"
-            className="text-gray-700 hover:text-blue-600 px-3 py-1 rounded-md transition"
-          >
+        <div className="space-x-2">
+          <NavLink to="/" className={({ isActive }) => linkClasses(isActive)}>
             Home
-          </Link>
+          </NavLink>
 
           {token ? (
             <>
-              <Link
+              <NavLink
                 to="/tasks"
-                className="text-gray-700 hover:text-blue-600 px-3 py-1 rounded-md transition"
+                className={({ isActive }) => linkClasses(isActive)}
               >
                 Tasks
-              </Link>
+              </NavLink>
               <button
                 onClick={onLogout}
-                className="text-red-500 hover:text-red-700 px-3 py-1 rounded-md transition"
+                className="px-4 py-2 rounded transition-colors bg-transparent text-red-500 hover:bg-red-100"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link
+              <NavLink
                 to="/login"
-                className="text-gray-700 hover:text-blue-600 px-3 py-1 rounded-md transition"
+                className={({ isActive }) => linkClasses(isActive)}
               >
                 Login
-              </Link>
-              <Link
+              </NavLink>
+              <NavLink
                 to="/register"
-                className="text-gray-700 hover:text-blue-600 px-3 py-1 rounded-md transition"
+                className={({ isActive }) => linkClasses(isActive)}
               >
                 Register
-              </Link>
+              </NavLink>
             </>
           )}
         </div>
