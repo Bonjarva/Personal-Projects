@@ -7,9 +7,16 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // ─────────────────────────────────────────────────────────────────────────────
 // Components / Pages
 // ─────────────────────────────────────────────────────────────────────────────
+import NavBar from "./components/NavBar";
+import Footer from "./components/Footer";
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import TasksPage from "./pages/TasksPage";
+import AboutPage from "./pages/AboutPage";
+import DocsPage from "./pages/DocsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import ContactPage from "./pages/ContactPage";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants & Config
@@ -55,34 +62,42 @@ const App: React.FC = () => {
   // Routes Definition
   // ───────────────────────────────────────────────────────────────────────────
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-      <Route
-        path="/register"
-        element={<RegisterPage onRegister={handleRegister} />}
-      />
+    <div className="flex flex-col min-h-screen">
+      <NavBar token={token} onLogout={handleLogout} />
 
-      {/* Protected route: tasks */}
-      <Route
-        path="/tasks"
-        element={
-          <RequireAuth>
-            <TasksPage
-              token={token!}
-              apiUrl={API_URL}
-              onLogout={handleLogout}
-            />
-          </RequireAuth>
-        }
-      />
+      <main className="flex-grow">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/docs" element={<DocsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route
+            path="/register"
+            element={<RegisterPage onRegister={handleRegister} />}
+          />
+          <Route
+            path="/tasks"
+            element={
+              <RequireAuth>
+                <TasksPage
+                  token={token!}
+                  apiUrl={API_URL}
+                  onLogout={handleLogout}
+                />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="*"
+            element={<Navigate to={token ? "/tasks" : "/"} replace />}
+          />
+        </Routes>
+      </main>
 
-      {/* Fallback: send to tasks if logged in, otherwise login */}
-      <Route
-        path="*"
-        element={<Navigate to={token ? "/tasks" : "/login"} replace />}
-      />
-    </Routes>
+      <Footer />
+    </div>
   );
 };
 

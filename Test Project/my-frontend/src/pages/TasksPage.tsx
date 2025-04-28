@@ -231,12 +231,6 @@ export default function TasksPage({ token, apiUrl, onLogout }: TasksPageProps) {
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-blue-600">Tasks</h1>
-          <button
-            onClick={onLogout}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
-          >
-            Logout
-          </button>
         </div>
 
         {/* Task List */}
