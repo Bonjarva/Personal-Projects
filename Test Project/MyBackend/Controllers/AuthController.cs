@@ -13,16 +13,19 @@ namespace MyBackend.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<IdentityUser> _users;
+        private readonly UserManager<ApplicationUser> _users;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IConfiguration        _config;
         private readonly ILogger<AuthController> _logger;
 
         public AuthController(
-            UserManager<IdentityUser> users,
+            UserManager<ApplicationUser> users,
+            SignInManager<ApplicationUser> signInManager,
             IConfiguration config,
             ILogger<AuthController> logger)
         {
             _users  = users;
+            _signInManager  = signInManager;
             _config = config;
             _logger = logger;
         }
@@ -32,7 +35,7 @@ namespace MyBackend.Controllers
         {
             try
             {
-                var user = new IdentityUser
+                var user = new ApplicationUser
                 {
                     UserName = model.Username,
                     Email    = model.Email

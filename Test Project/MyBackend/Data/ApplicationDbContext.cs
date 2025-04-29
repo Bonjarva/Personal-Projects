@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MyBackend.Models
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> opts)
             : base(opts) { }
