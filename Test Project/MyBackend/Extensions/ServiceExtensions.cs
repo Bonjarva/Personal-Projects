@@ -70,25 +70,45 @@ public static IServiceCollection AddJwtAuth(this IServiceCollection services, IC
     return services;
 }
 
-  public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration config)
-        {
-            var origins = config
-                .GetSection("Cors:AllowedOrigins")
-                .Get<string[]>() 
-                ?? throw new InvalidOperationException("Cors:AllowedOrigins missing");
+public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration config)
+{
+    // Load any fixed origins you still want to allow from config
+    var configuredOrigins = config
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>() 
+        ?? throw new InvalidOperationException("Cors:AllowedOrigins missing");
 
-            services.AddCors(opts =>
-            {
-                opts.AddPolicy("Frontend", policy =>
-                    policy
-                      .WithOrigins(origins)
-                      .AllowAnyHeader()
-                      .AllowAnyMethod()
-                );
-            });
+    services.AddCors(opts =>
+    {
+        opts.AddPolicy("Frontend", policy =>
+            policy
+              // Allow the explicit ones too
+              .WithOrigins(configuredOrigins)
+              
+              // wildcard localhost (any port, any scheme)
+              .SetIsOriginAllowed(origin =>
+              {
+                  if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                  {
+                      // allow anything on localhost
+                      if (uri.Host == "localhost" || uri.Host == "127.0.0.1")
+                          return true;
 
-            return services;
-        }
+                      // allow any vercel.app subdomain
+                      if (uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase))
+                          return true;
+                  }
+                  return false;
+              })
+              
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+        );
+    });
+
+    return services;
+}
 
   public static IServiceCollection AddSwaggerDev(this IServiceCollection services, IWebHostEnvironment env)
   {
