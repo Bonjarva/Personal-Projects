@@ -3,6 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { ReactNode, useCallback, useState } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Components / Pages
@@ -50,7 +51,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleRegister = useCallback((message: string) => {
-    alert(message);
+    toast.success(message);
   }, []);
 
   // ───────────────────────────────────────────────────────────────────────────

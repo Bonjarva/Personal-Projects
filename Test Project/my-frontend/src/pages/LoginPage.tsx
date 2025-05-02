@@ -26,6 +26,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   // ───────────────────────────────────────────────────────────────────────────
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(""); // Reset previous errors
+      setIsLoading(true);
+
       try {
         const response = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
@@ -63,6 +66,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
       } catch (err) {
         console.error("Login error:", err);
         setError("An error occurred during login.");
+      } finally {
+        setIsLoading(false);
       }
     },
     [username, password, onLogin, navigate]
@@ -104,9 +109,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
         <button
           type="submit"
+          disabled={isLoading}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-md transition duration-200"
         >
-          Login
+          {isLoading ? "Logging in…" : "Log In"}
         </button>
 
         {/* Link to navigate to Register page */}
