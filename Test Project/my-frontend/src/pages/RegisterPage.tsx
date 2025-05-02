@@ -34,6 +34,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // ───────────────────────────────────────────────────────────────────────────
   // Navigation Hook
@@ -47,6 +49,9 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setError(""); // Reset previous error
+      setSuccess("");
+      setIsLoading(true);
+
       try {
         const response = await fetch(`${API_URL}/auth/register`, {
           method: "POST",
@@ -88,11 +93,16 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
         }
 
         const message = await response.text();
-        onRegister(message);
-        navigate("/login", { replace: true }); // Redirect to login after successful registration
+
+        setSuccess(message || "Registration successful!");
+        onRegister(message || "");
+
+        setTimeout(() => navigate("/login", { replace: true }), 1500);
       } catch (err) {
         console.error("Registration error:", err);
         setError("An error occurred. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     },
     [username, email, password, onRegister, navigate]
@@ -108,7 +118,8 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
         className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg"
       >
         <h2 className="text-2xl font-bold mb-4">Register</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {error && <div className="text-red-500">{error}</div>}
+        {success && <div className="text-green-500">{success}</div>}
 
         <label className="block mb-4">
           <span className="block text-sm font-medium mb-1">Username</span>
@@ -117,6 +128,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="Enter your username"
+            required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </label>
@@ -128,6 +140,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
+            required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </label>
@@ -139,15 +152,17 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
+            required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
         </label>
 
         <button
           type="submit"
+          disabled={isLoading}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-md transition duration-200"
         >
-          Register
+          {isLoading ? "Registering…" : "Register"}
         </button>
 
         {/* Link to navigate to login page */}
