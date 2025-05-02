@@ -1,7 +1,28 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  "compilerOptions": {
+    // Basic language and JSX support
+    "target": "ES2022",
+    "lib": ["DOM", "ES2023"],
+    "jsx": "react-jsx",
+
+    // Module loading
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    // Strictness & safety
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+
+    // Useful extras
+    "resolveJsonModule": true,
+    "esModuleInterop": true
+  },
+
+  // We include everything under src, including our .d.ts shim
+  "include": ["src/**/*"]
 }

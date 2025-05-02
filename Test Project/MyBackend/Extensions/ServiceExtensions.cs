@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MyBackend.Extensions
 {
@@ -12,7 +14,7 @@ namespace MyBackend.Extensions
 {
     public static IServiceCollection AddIdentityStores(this IServiceCollection services)
         {
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>()
                     .AddEntityFrameworkStores<ApplicationDbContext>()
                     .AddDefaultTokenProviders();
             return services;
@@ -136,6 +138,29 @@ public static IServiceCollection AddJwtAuth(this IServiceCollection services, IC
             db.Database.Migrate();
             return services.GetRequiredService<IHost>(); 
         }
+
+
+
+public static IServiceCollection AddCustomJsonOptions(this IServiceCollection services)
+        {
+            // If you use controllers:
+            services
+                .AddControllers()
+                .AddJsonOptions(opts =>
+                {
+                    opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                    opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                    opts.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+                    #if DEBUG
+                    opts.JsonSerializerOptions.WriteIndented = true;
+                    #endif
+                });
+
+            return services;
+        }
+
+
 }
 }
 

@@ -17,6 +17,7 @@ import AboutPage from "./pages/AboutPage";
 import DocsPage from "./pages/DocsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import ContactPage from "./pages/ContactPage";
+import ProfilePage from "./pages/ProfilePage";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants & Config
@@ -72,6 +73,7 @@ const App: React.FC = () => {
           <Route path="/docs" element={<DocsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/contact" element={<ContactPage />} />
+
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route
             path="/register"
@@ -86,6 +88,14 @@ const App: React.FC = () => {
                   apiUrl={API_URL}
                   onLogout={handleLogout}
                 />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage token={token} />
               </RequireAuth>
             }
           />

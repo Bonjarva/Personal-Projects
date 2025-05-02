@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MyBackend.Extensions.Middleware;
 using MyBackend.Models;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,7 +21,7 @@ builder.Services
     .AddJwtAuth(builder.Configuration)            // JWT‐Bearer
     .AddCorsPolicy(builder.Configuration)                                 // AllowAll CORS in dev
     .AddSwaggerDev(builder.Environment)           // Swagger in dev
-    .AddControllers();
+    .AddCustomJsonOptions(); // Includes AddControllers + JSON setup
 
 builder.Services
   .AddHealthChecks()
