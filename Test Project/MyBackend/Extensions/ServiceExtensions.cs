@@ -71,44 +71,46 @@ public static IServiceCollection AddJwtAuth(this IServiceCollection services, IC
 }
 
 public static IServiceCollection AddCorsPolicy(this IServiceCollection services, IConfiguration config)
-{
-    // Load any fixed origins you still want to allow from config
-    var configuredOrigins = config
-        .GetSection("Cors:AllowedOrigins")
-        .Get<string[]>() 
-        ?? throw new InvalidOperationException("Cors:AllowedOrigins missing");
+        {
+            // load any fixed origins you still want from appsettings.json
+            var configuredOrigins = config
+                .GetSection("Cors:AllowedOrigins")
+                .Get<string[]>() 
+                ?? throw new InvalidOperationException("Cors:AllowedOrigins missing");
 
-    services.AddCors(opts =>
-    {
-        opts.AddPolicy("Frontend", policy =>
-            policy
-              // Allow the explicit ones too
-              .WithOrigins(configuredOrigins)
-              
-              // wildcard localhost (any port, any scheme)
-              .SetIsOriginAllowed(origin =>
-              {
-                  if (Uri.TryCreate(origin, UriKind.Absolute, out var uri))
-                  {
-                      // allow anything on localhost
-                      if (uri.Host == "localhost" || uri.Host == "127.0.0.1")
-                          return true;
+            services.AddCors(opts =>
+            {
+                opts.AddPolicy("Frontend", policy =>
+                    policy
+                        // still allow your explicitly configured URLs
+                        .WithOrigins(configuredOrigins)
+                        
+                        // plus any localhost and any *.vercel.app origin
+                        .SetIsOriginAllowed(origin =>
+                        {
+                            if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                                return false;
 
-                      // allow any vercel.app subdomain
-                      if (uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase))
-                          return true;
-                  }
-                  return false;
-              })
-              
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-        );
-    });
+                            // allow localhost (any port)
+                            if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) ||
+                                uri.Host.Equals("127.0.0.1", StringComparison.OrdinalIgnoreCase))
+                                return true;
 
-    return services;
-}
+                            // allow any subdomain of vercel.app
+                            if (uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase))
+                                return true;
+
+                            return false;
+                        })
+
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials()
+                );
+            });
+
+            return services;
+        }
 
   public static IServiceCollection AddSwaggerDev(this IServiceCollection services, IWebHostEnvironment env)
   {
